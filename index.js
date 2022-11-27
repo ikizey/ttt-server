@@ -5,7 +5,6 @@ const http = require('http');
 const { Server } = require('socket.io');
 const playersQueue = require('./models/Queue.js');
 const Game = require('./models/Game.js');
-const e = require('express');
 
 const PORT = 3001;
 
@@ -109,7 +108,6 @@ io.on('connection', (client) => {
     winner = currentGame.winner;
     if (winner) {
       io.in(gameId).emit('winner', { player: winner });
-      // games.filter((game) => game.id !== currentGame.id);
     } else {
       io.in(gameId).emit('currentPlayer', {
         player: currentGame.currentPlayer.id,
