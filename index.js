@@ -131,6 +131,14 @@ io.on('connection', (client) => {
     if (index > -1) {
       players.splice(index, 1);
     }
+    const playersGame = games.find(
+      (game) => game.player1.id === client.id || game.player2.id === client.id
+    );
+    if (playersGame && playersGame.winner !== undefined) {
+      playersGame.playerConcede(client.id);
+      io.in(playersGame.id).emit('winner', { player: playersGame.winner });
+    }
+
     io.in('global').emit('totalPlayers', { players: players.length });
     console.log(client.id + ' disconnected');
   });
