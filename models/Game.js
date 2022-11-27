@@ -54,17 +54,13 @@ class Game {
     const currentPlayerMoves = this.moves[this.currentPlayer.id];
     if (currentPlayerMoves.length < 3) return false;
     const moveSet = new Set(currentPlayerMoves);
-    const gameOver = isSuperset(moveSet, winPositions);
-
-    console.log(gameOver);
-
-    if (gameOver) {
-      this.winner = this.currentPlayer.id;
+    for (const winPosition of winPositions) {
+      const gameOver = isSuperset(moveSet, winPosition);
+      if (gameOver) {
+        this.winner = this.currentPlayer.id;
+        return gameOver;
+      }
     }
-
-    console.log(this.winner);
-    console.log(gameOver);
-    return gameOver;
   };
 
   makeMove = (move) => {
