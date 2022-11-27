@@ -37,7 +37,15 @@ io.on('connection', (client) => {
     client.to(gameId).emit('opponentID', { playerID });
   });
 
-  client.on('concede', ({ game }) => {});
+  client.on('concede', ({ gameId }) => {
+    const currentGameIndex = games.findIndex((game) => game.id === gameId);
+    const currentGame = games[currentGameIndex];
+    currentGame.playerConcede(client.id);
+    const winner = currentGame.winner;
+    if (winner) {
+      io.in(gameId).emit('winner', { player: winner });
+    }
+  });
 
   client.on('find', () => {
     const firstInQueue = playersQueue.takeFirst();
@@ -67,7 +75,8 @@ io.on('connection', (client) => {
   });
 
   client.on('move', ({ gameId, move }) => {
-    const currentGame = games.find((game) => game.id === gameId);
+    const currentGameIndex = games.findIndex((game) => game.id === gameId);
+    const currentGame = games[currentGameIndex];
     if (!currentGame) {
       client.emit('error', { message: 'no such game' });
       console.error(
@@ -78,6 +87,9 @@ io.on('connection', (client) => {
       );
       return;
     }
+
+    let winner = currentGame.winner;
+    if (winner) return;
 
     if (currentGame.currentPlayer.id !== client.id) {
       client.emit('error', { message: "It's not your turn" });
@@ -94,9 +106,10 @@ io.on('connection', (client) => {
     io.in(gameId).emit('moves', { moves: currentGame.flatMoves() });
 
     currentGame.decideGameOver();
-    const winner = currentGame.winner;
+    winner = currentGame.winner;
     if (winner) {
       io.in(gameId).emit('winner', { player: winner });
+      // games.filter((game) => game.id !== currentGame.id);
     } else {
       io.in(gameId).emit('currentPlayer', {
         player: currentGame.currentPlayer.id,
@@ -104,11 +117,21 @@ io.on('connection', (client) => {
     }
   });
 
+  client.on('leaveGame', ({ gameId }) => {
+    const currentGameIndex = games.findIndex((game) => game.id === gameId);
+    const currentGame = games[currentGameIndex];
+    if (!currentGame) return;
+
+    currentGame.playerLeave(client.id);
+    games.splice(currentGameIndex, 1); //!!!not safe?
+  });
+
   client.on('disconnect', () => {
     const index = players.indexOf(client);
     if (index > -1) {
       players.splice(index, 1);
     }
+    io.in('global').emit('totalPlayers', { players: players.length });
     console.log(client.id + ' disconnected');
   });
 });

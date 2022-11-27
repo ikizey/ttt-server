@@ -50,6 +50,17 @@ class Game {
       this.currentPlayer.id === this.player1.id ? this.player2 : this.player1;
   };
 
+  playerIsPresent = (playerId) => {
+    return playerId === this.player1.id || playerId === this.player2.id;
+  };
+
+  playerConcede = (playerId) => {
+    if (!this.playerIsPresent(playerId)) return;
+
+    this.winner =
+      playerId === this.player1.id ? this.player2.id : this.player1.id;
+  };
+
   decideGameOver = () => {
     const currentPlayerMoves = this.moves[this.currentPlayer.id];
     if (currentPlayerMoves.length < 3) return false;
@@ -87,6 +98,22 @@ class Game {
       result.push('');
     }
     return result;
+  };
+
+  playerLeave = (playerId) => {
+    if (!this.playerIsPresent(playerId)) return;
+    switch (playerId) {
+      case this.player1.id: {
+        this.player1 = null;
+        break;
+      }
+      case this.player2.id: {
+        this.player2 = null;
+        break;
+      }
+      default:
+        return;
+    }
   };
 }
 
